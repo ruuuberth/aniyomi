@@ -6,7 +6,7 @@ import tachiyomi.domain.entries.anime.model.Anime
 import tachiyomi.domain.track.anime.model.AnimeTrack
 
 /**
- * An Enhanced Track Service will never prompt the user to match a manga with the remote.
+ * An Enhanced Track Service will never prompt the user to match an entry with the remote.
  * It is expected that such Track Service can only work with specific sources and unique IDs.
  */
 interface EnhancedAnimeTracker {

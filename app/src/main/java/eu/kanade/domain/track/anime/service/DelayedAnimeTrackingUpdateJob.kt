@@ -45,7 +45,7 @@ class DelayedAnimeTrackingUpdateJob(private val context: Context, workerParams: 
                 .forEach { animeTrack ->
                     logcat(LogPriority.DEBUG) {
                         "Updating delayed track item: ${animeTrack.animeId}" +
-                            ", last chapter read: ${animeTrack.lastEpisodeSeen}"
+                            ", last episode seen: ${animeTrack.lastEpisodeSeen}"
                     }
                     trackEpisode.await(
                         context,

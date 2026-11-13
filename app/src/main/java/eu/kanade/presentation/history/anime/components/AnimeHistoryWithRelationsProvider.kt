@@ -38,7 +38,7 @@ internal class AnimeHistoryWithRelationsProvider : PreviewParameterProvider<Anim
         ),
     )
 
-    private val historyWithNegativeChapterNumber = AnimeHistoryWithRelations(
+    private val historyWithNegativeEpisodeNumber = AnimeHistoryWithRelations(
         id = 1L,
         episodeId = 2L,
         animeId = 3L,
@@ -55,5 +55,5 @@ internal class AnimeHistoryWithRelationsProvider : PreviewParameterProvider<Anim
     )
 
     override val values: Sequence<AnimeHistoryWithRelations>
-        get() = sequenceOf(simple, historyWithoutReadAt, historyWithNegativeChapterNumber)
+        get() = sequenceOf(simple, historyWithoutReadAt, historyWithNegativeEpisodeNumber)
 }

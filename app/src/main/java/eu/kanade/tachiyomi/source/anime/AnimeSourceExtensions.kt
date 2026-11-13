@@ -22,7 +22,7 @@ fun AnimeSource.getNameForAnimeInfo(): String {
     val hasOneActiveLanguages = enabledLanguages.size == 1
     val isInEnabledLanguages = lang in enabledLanguages
     return when {
-        // For edge cases where user disables a source they got manga of in their library.
+        // For edge cases where user disables a source they got anime of in their library.
         hasOneActiveLanguages && !isInEnabledLanguages -> toString()
         // Hide the language tag when only one language is used.
         hasOneActiveLanguages && isInEnabledLanguages -> name

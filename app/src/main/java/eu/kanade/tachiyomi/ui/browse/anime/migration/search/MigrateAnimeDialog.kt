@@ -268,7 +268,7 @@ internal class MigrateAnimeDialogScreenModel(
             fetchEpisodes = true,
         ).getOrThrow()
 
-        // Update chapters read, bookmark and dateFetch
+        // Update episodes seen, bookmark and dateFetch
         if (migrateEpisodes) {
             val prevAnimeEpisodes = getEpisodesByAnimeId.await(oldAnime.id)
             val animeEpisodes = getEpisodesByAnimeId.await(newAnime.id)

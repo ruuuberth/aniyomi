@@ -41,10 +41,9 @@ import eu.kanade.presentation.util.isTabletUi
 import eu.kanade.tachiyomi.ui.browse.BrowseTab
 import eu.kanade.tachiyomi.ui.download.DownloadsTab
 import eu.kanade.tachiyomi.ui.entries.anime.AnimeScreen
-import eu.kanade.tachiyomi.ui.entries.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.history.HistoriesTab
+import eu.kanade.tachiyomi.ui.home.HomeScreen.Tab
 import eu.kanade.tachiyomi.ui.library.anime.AnimeLibraryTab
-import eu.kanade.tachiyomi.ui.library.manga.MangaLibraryTab
 import eu.kanade.tachiyomi.ui.more.MoreTab
 import eu.kanade.tachiyomi.ui.updates.UpdatesTab
 import kotlinx.coroutines.channels.Channel
@@ -161,7 +160,6 @@ object HomeScreen : Screen() {
                         goToStartScreen()
                         when (defaultTab) {
                             AnimeLibraryTab -> AnimeLibraryTab.search(it)
-                            MangaLibraryTab -> MangaLibraryTab.search(it)
                             else -> {}
                         }
                     }
@@ -170,16 +168,11 @@ object HomeScreen : Screen() {
                     openTabEvent.receiveAsFlow().collectLatest {
                         tabNavigator.current = when (it) {
                             is Tab.AnimeLib -> AnimeLibraryTab
-                            is Tab.Library -> MangaLibraryTab
                             is Tab.Updates -> UpdatesTab
                             is Tab.History -> HistoriesTab
                             is Tab.Browse -> {
                                 if (it.toExtensions) {
-                                    if (!it.anime) {
-                                        BrowseTab.showExtension()
-                                    } else {
-                                        BrowseTab.showAnimeExtension()
-                                    }
+                                    BrowseTab.showAnimeExtension()
                                 }
                                 BrowseTab
                             }
@@ -188,9 +181,6 @@ object HomeScreen : Screen() {
 
                         if (it is Tab.AnimeLib && it.animeIdToOpen != null) {
                             navigator.push(AnimeScreen(it.animeIdToOpen))
-                        }
-                        if (it is Tab.Library && it.mangaIdToOpen != null) {
-                            navigator.push(MangaScreen(it.mangaIdToOpen))
                         }
                         if (it is Tab.More && it.toDownloads) {
                             navigator.push(DownloadsTab)
@@ -267,8 +257,7 @@ object HomeScreen : Screen() {
                             val pref = Injekt.get<LibraryPreferences>()
                             combine(
                                 pref.newAnimeUpdatesCount().changes(),
-                                pref.newMangaUpdatesCount().changes(),
-                            ) { countAnime, countManga -> countAnime + countManga }
+                            ) { countAnime -> countAnime }
                                 .collectLatest { value = if (pref.newShowUpdatesCount().get()) it else 0 }
                         }
                         if (count > 0) {
@@ -289,9 +278,8 @@ object HomeScreen : Screen() {
                         val count by produceState(initialValue = 0) {
                             val pref = Injekt.get<SourcePreferences>()
                             combine(
-                                pref.mangaExtensionUpdatesCount().changes(),
                                 pref.animeExtensionUpdatesCount().changes(),
-                            ) { extCount, animeExtCount -> extCount + animeExtCount }
+                            ) { animeExtCount -> animeExtCount }
                                 .collectLatest { value = it }
                         }
                         if (count > 0) {
@@ -334,10 +322,9 @@ object HomeScreen : Screen() {
 
     sealed interface Tab {
         data class AnimeLib(val animeIdToOpen: Long? = null) : Tab
-        data class Library(val mangaIdToOpen: Long? = null) : Tab
         data object Updates : Tab
         data object History : Tab
-        data class Browse(val toExtensions: Boolean = false, val anime: Boolean = false) : Tab
+        data class Browse(val toExtensions: Boolean = false) : Tab
         data class More(val toDownloads: Boolean) : Tab
     }
 }

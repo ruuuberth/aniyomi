@@ -21,7 +21,7 @@ import uy.kohesive.injekt.injectLazy
 import java.util.regex.Pattern
 
 /**
- * DownloadNotifier is used to show notifications when downloading one or multiple chapters.
+ * DownloadNotifier is used to show notifications when downloading one or multiple episodes.
  *
  * @param context context of application
  */

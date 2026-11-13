@@ -202,7 +202,7 @@ class AnimeDownloadCache(
     }
 
     /**
-     * Returns the total size of downloaded chapters for an anime.
+     * Returns the total size of downloaded episodes for an anime.
      *
      * @param anime the anime to check.
      */
@@ -242,7 +242,7 @@ class AnimeDownloadCache(
                 sourceDir.animeDirs += animeDirName to animeDir
             }
 
-            // Save the chapter directory
+            // Save the episode directory
             animeDir.episodeDirs += episodeDirName
         }
 
@@ -462,7 +462,7 @@ private class SourceDirectory(
 )
 
 /**
- * Class to store the files under a manga directory.
+ * Class to store the files under an anime directory.
  */
 @Serializable
 private class AnimeDirectory(

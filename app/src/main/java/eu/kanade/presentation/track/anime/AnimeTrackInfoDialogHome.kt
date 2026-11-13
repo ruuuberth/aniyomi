@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import eu.kanade.presentation.track.components.TrackLogoIcon
-import eu.kanade.presentation.track.manga.TrackDetailsItem
-import eu.kanade.presentation.track.manga.TrackInfoItemMenu
+import eu.kanade.presentation.track.components.TrackDetailsItem
+import eu.kanade.presentation.track.components.TrackInfoItemMenu
 import eu.kanade.tachiyomi.data.track.AnimeTracker
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.ui.entries.anime.track.AnimeTrackItem

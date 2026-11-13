@@ -291,7 +291,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
      * Normally it's not needed to override this method.
      *
      * @param anime the anime to update.
-     * @return the chapters for the manga.
+     * @return the episodes for the anime.
      */
     @Suppress("DEPRECATION")
     override suspend fun getEpisodeList(anime: SAnime): List<SEpisode> {
@@ -634,7 +634,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
      * Returns the request for getting the url to the source image. Override only if it's needed to
      * override the url, send different headers or request method like POST.
      *
-     * @param video the chapter whose page list has to be fetched
+     * @param video the video whose page list has to be fetched
      */
     @Deprecated(
         message = "The helper functions are inherently limiting and hides the underlying implementation. " +

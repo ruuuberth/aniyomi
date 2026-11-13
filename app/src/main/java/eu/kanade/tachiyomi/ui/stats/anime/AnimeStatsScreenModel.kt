@@ -64,7 +64,7 @@ class AnimeStatsScreenModel(
                 localAnimeCount = distinctLibraryAnime.count { it.anime.isLocal() },
             )
 
-            val chaptersStatData = StatsData.Episodes(
+            val episodesStatData = StatsData.Episodes(
                 totalEpisodeCount = distinctLibraryAnime.sumOf { it.totalCount }.toInt(),
                 readEpisodeCount = distinctLibraryAnime.sumOf { it.seenCount }.toInt(),
                 downloadCount = downloadManager.getDownloadCount(),
@@ -80,7 +80,7 @@ class AnimeStatsScreenModel(
                 StatsScreenState.SuccessAnime(
                     overview = overviewStatData,
                     titles = titlesStatData,
-                    episodes = chaptersStatData,
+                    episodes = episodesStatData,
                     trackers = trackersStatData,
                 )
             }
@@ -96,7 +96,7 @@ class AnimeStatsScreenModel(
         }
 
         val excludedCategories = preferences.animeUpdateCategoriesExclude().get().map { it.toLong() }
-        val excludedMangaIds = if (excludedCategories.isNotEmpty()) {
+        val excludedAnimeIds = if (excludedCategories.isNotEmpty()) {
             libraryAnime.fastMapNotNull { anime ->
                 anime.id.takeIf { anime.category in excludedCategories }
             }
@@ -106,7 +106,7 @@ class AnimeStatsScreenModel(
 
         val updateRestrictions = preferences.autoUpdateItemRestrictions().get()
         return includedAnime
-            .fastFilterNot { it.anime.id in excludedMangaIds }
+            .fastFilterNot { it.anime.id in excludedAnimeIds }
             .fastDistinctBy { it.anime.id }
             .fastCountNot {
                 (ENTRY_NON_COMPLETED in updateRestrictions && it.anime.status.toInt() == SAnime.COMPLETED) ||

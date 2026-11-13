@@ -8,7 +8,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 /**
- * Returns a copy of the list with not downloaded chapters removed.
+ * Returns a copy of the list with not downloaded episodes removed.
  */
 fun List<Episode>.filterDownloadedEpisodes(anime: Anime): List<Episode> {
     if (anime.isLocal()) return this

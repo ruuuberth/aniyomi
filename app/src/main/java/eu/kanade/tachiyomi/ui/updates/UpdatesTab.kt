@@ -16,7 +16,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.download.DownloadsTab
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.updates.anime.animeUpdatesTab
-import eu.kanade.tachiyomi.ui.updates.manga.mangaUpdatesTab
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -32,7 +31,6 @@ data object UpdatesTab : Tab {
                 NavStyle.MOVE_UPDATES_TO_MORE -> 5u
                 NavStyle.MOVE_HISTORY_TO_MORE -> 2u
                 NavStyle.MOVE_BROWSE_TO_MORE -> 2u
-                NavStyle.MOVE_MANGA_TO_MORE -> 1u
             }
             return TabOptions(
                 index = index,
@@ -53,7 +51,6 @@ data object UpdatesTab : Tab {
             titleRes = MR.strings.label_recent_updates,
             tabs = persistentListOf(
                 animeUpdatesTab(context, fromMore),
-                mangaUpdatesTab(context, fromMore),
             ),
         )
 
@@ -62,6 +59,3 @@ data object UpdatesTab : Tab {
         }
     }
 }
-
-private const val TAB_ANIME = 0
-private const val TAB_MANGA = 1

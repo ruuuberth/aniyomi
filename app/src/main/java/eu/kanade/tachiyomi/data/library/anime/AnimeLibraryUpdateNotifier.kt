@@ -16,13 +16,13 @@ import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.core.common.Constants
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.download.anime.AnimeDownloader
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.system.cancelNotification
@@ -290,8 +290,8 @@ class AnimeLibraryUpdateNotifier(
                     Notifications.ID_NEW_EPISODES,
                 ),
             )
-            // Download chapters action
-            // Only add the action when chapters is within threshold
+            // Download episodes action
+            // Only add the action when episodes is within threshold
             if (episodes.size <= AnimeDownloader.EPISODES_PER_SOURCE_QUEUE_WARNING_THRESHOLD) {
                 addAction(
                     android.R.drawable.stat_sys_download_done,
@@ -300,7 +300,7 @@ class AnimeLibraryUpdateNotifier(
                         context,
                         anime,
                         episodes,
-                        Notifications.ID_NEW_CHAPTERS,
+                        Notifications.ID_NEW_EPISODES,
                     ),
                 )
             }

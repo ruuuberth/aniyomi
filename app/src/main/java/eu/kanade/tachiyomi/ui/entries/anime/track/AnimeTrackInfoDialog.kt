@@ -245,7 +245,7 @@ data class AnimeTrackInfoDialogHomeScreen(
                 .filter { it.first != null }
                 .forEach { (track, e) ->
                     logcat(LogPriority.ERROR, e) {
-                        "Failed to refresh track data mangaId=$animeId for service ${track!!.id}"
+                        "Failed to refresh track data animeId=$animeId for service ${track!!.id}"
                     }
                     withUIContext {
                         context.toast(
@@ -364,7 +364,6 @@ private data class TrackEpisodeSelectorScreen(
                 navigator.pop()
             },
             onDismissRequest = navigator::pop,
-            isManga = false,
         )
     }
 

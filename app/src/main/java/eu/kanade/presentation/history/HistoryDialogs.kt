@@ -18,13 +18,11 @@ import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
-import kotlin.random.Random
 
 @Composable
 fun HistoryDeleteDialog(
     onDismissRequest: () -> Unit,
     onDelete: (Boolean) -> Unit,
-    isManga: Boolean,
 ) {
     var removeEverything by remember { mutableStateOf(false) }
 
@@ -36,19 +34,11 @@ fun HistoryDeleteDialog(
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
             ) {
-                val subtitle = if (isManga) {
-                    MR.strings.dialog_with_checkbox_remove_description
-                } else {
-                    AYMR.strings.dialog_with_checkbox_remove_description_anime
-                }
+                val subtitle = AYMR.strings.dialog_with_checkbox_remove_description_anime
                 Text(text = stringResource(subtitle))
 
                 LabeledCheckbox(
-                    label = if (isManga) {
-                        stringResource(AYMR.strings.dialog_with_checkbox_reset)
-                    } else {
-                        stringResource(AYMR.strings.dialog_with_checkbox_reset_anime)
-                    },
+                    label = stringResource(AYMR.strings.dialog_with_checkbox_reset_anime),
                     checked = removeEverything,
                     onCheckedChange = { removeEverything = it },
                 )
@@ -107,7 +97,6 @@ private fun HistoryDeleteDialogPreview() {
         HistoryDeleteDialog(
             onDismissRequest = {},
             onDelete = {},
-            isManga = Random.nextBoolean(),
         )
     }
 }

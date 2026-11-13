@@ -21,16 +21,16 @@ class NavigationOptionsMigration : Migration {
 
         val bottomNavStyle = preferenceStore.getInt("bottom_nav_style", 0)
 
-        val isDefaultTabManga = preferenceStore.getBoolean("default_home_tab_library", false)
         prefs.edit {
             remove("bottom_nav_style")
             remove("default_home_tab_library")
 
-            val startScreen = if (isDefaultTabManga.get()) StartScreen.MANGA else StartScreen.ANIME
+            // Manga library is no longer a start screen target; default to the anime library
+            val startScreen = StartScreen.ANIME
             val navStyle = when (bottomNavStyle.get()) {
                 0 -> NavStyle.MOVE_HISTORY_TO_MORE
                 1 -> NavStyle.MOVE_UPDATES_TO_MORE
-                else -> NavStyle.MOVE_MANGA_TO_MORE
+                else -> NavStyle.MOVE_BROWSE_TO_MORE
             }
 
             preferenceStore.getEnum("start_screen", StartScreen.ANIME).set(startScreen)

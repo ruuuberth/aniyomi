@@ -1497,7 +1497,7 @@ class AnimeScreenModel(
                 getTracks.subscribe(anime.id).catch { logcat(LogPriority.ERROR, it) },
                 trackerManager.loggedInTrackersFlow(),
             ) { animeTracks, loggedInTrackers ->
-                // Show only if the service supports this manga's source
+                // Show only if the service supports this anime's source
                 val supportedTrackers = loggedInTrackers.filter {
                     (it as? EnhancedAnimeTracker)?.accept(source!!) ?: true
                 }

@@ -13,7 +13,7 @@ class PrivatePreferenceMigration : Migration {
 
         replacePreferences(
             preferenceStore = preferenceStore,
-            filterPredicate = { it.key.startsWith("pref_mangasync_") || it.key.startsWith("track_token_") },
+            filterPredicate = { it.key.startsWith("track_token_") },
             newKey = { Preference.privateKey(it) },
         )
 

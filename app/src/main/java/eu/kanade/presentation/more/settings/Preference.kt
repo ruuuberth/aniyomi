@@ -14,7 +14,6 @@ import eu.kanade.tachiyomi.data.track.Tracker
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.coroutines.CoroutineScope
-import mihon.core.archive.openFileDescriptor
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -187,12 +186,14 @@ sealed class Preference {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
                         val inputFile = storageManager.getMPVConfigDirectory()
                             ?.createFile(fileName)
-                        inputFile?.openFileDescriptor(context, "rwt")?.fileDescriptor
-                            ?.let {
-                                FileOutputStream(it).bufferedWriter().use { writer ->
-                                    writer.write(value)
+                        inputFile?.uri?.let { uri ->
+                            context.contentResolver.openFileDescriptor(uri, "rwt")?.fileDescriptor
+                                ?.let {
+                                    FileOutputStream(it).bufferedWriter().use { writer ->
+                                        writer.write(value)
+                                    }
                                 }
-                            }
+                        }
                         preference.set(value)
                     }
                 }

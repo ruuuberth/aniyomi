@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.animesource.model.FetchType
-import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
 import tachiyomi.presentation.core.components.material.padding
@@ -25,7 +24,6 @@ fun ItemHeader(
     itemCount: Int?,
     missingItemsCount: Int,
     onClick: () -> Unit,
-    isManga: Boolean,
     modifier: Modifier = Modifier,
     fetchType: FetchType = FetchType.Episodes,
 ) {
@@ -41,16 +39,12 @@ fun ItemHeader(
     ) {
         Text(
             text = if (itemCount == null) {
-                val count = if (isManga) MR.strings.chapters else AYMR.strings.episodes
+                val count = AYMR.strings.episodes
                 stringResource(count)
             } else {
-                val pluralCount = if (isManga) {
-                    MR.plurals.manga_num_chapters
-                } else {
-                    when (fetchType) {
-                        FetchType.Seasons -> AYMR.plurals.anime_num_seasons
-                        FetchType.Episodes -> AYMR.plurals.anime_num_episodes
-                    }
+                val pluralCount = when (fetchType) {
+                    FetchType.Seasons -> AYMR.plurals.anime_num_seasons
+                    FetchType.Episodes -> AYMR.plurals.anime_num_episodes
                 }
                 pluralStringResource(pluralCount, count = itemCount, itemCount)
             },

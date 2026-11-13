@@ -47,12 +47,12 @@ import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.size.Size
+import com.github.chrisbanes.photoview.PhotoView
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.entries.EditCoverAction
 import eu.kanade.tachiyomi.data.coil.useBackground
-import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.entries.anime.model.Anime
@@ -198,8 +198,8 @@ fun AnimeImagesDialog(
                 ) { page ->
                     AndroidView(
                         factory = {
-                            ReaderPageImageView(it).apply {
-                                onViewClicked = onDismissRequest
+                            PhotoView(it).apply {
+                                setOnClickListener { onDismissRequest() }
                                 clipToPadding = false
                                 clipChildren = false
                             }
@@ -214,14 +214,14 @@ fun AnimeImagesDialog(
                                 .target { image ->
                                     val drawable = image.asDrawable(context.resources)
                                     // Copy bitmap in case it came from memory cache
-                                    // Because SSIV needs to thoroughly read the image
+                                    // Because the view needs to thoroughly read the image
                                     val copy = (drawable as? BitmapDrawable)?.let {
                                         BitmapDrawable(
                                             context.resources,
                                             it.bitmap.copy(Bitmap.Config.HARDWARE, false),
                                         )
                                     } ?: drawable
-                                    view.setImage(copy, ReaderPageImageView.Config(zoomDuration = 500))
+                                    view.setImageDrawable(copy)
                                 }
                                 .build()
                             context.imageLoader.enqueue(request)

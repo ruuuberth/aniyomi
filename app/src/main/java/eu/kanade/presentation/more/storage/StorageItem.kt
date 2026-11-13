@@ -51,11 +51,10 @@ data class StorageItem(
 @Composable
 fun StorageItem(
     item: StorageItem,
-    isManga: Boolean,
     modifier: Modifier = Modifier,
     onDelete: (Long) -> Unit,
 ) {
-    val pluralCount = if (isManga) MR.plurals.manga_num_chapters else AYMR.plurals.anime_num_episodes
+    val pluralCount = AYMR.plurals.anime_num_episodes
     var showDeleteDialog by remember {
         mutableStateOf(false)
     }
@@ -128,7 +127,6 @@ fun StorageItem(
     if (showDeleteDialog) {
         ItemDeleteDialog(
             title = item.title,
-            isManga = isManga,
             onDismissRequest = { showDeleteDialog = false },
             onDelete = {
                 onDelete(item.id)
@@ -140,7 +138,6 @@ fun StorageItem(
 @Composable
 private fun ItemDeleteDialog(
     title: String,
-    isManga: Boolean,
     onDismissRequest: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -167,9 +164,7 @@ private fun ItemDeleteDialog(
         },
         title = {
             Text(
-                text = stringResource(
-                    if (isManga) MR.strings.delete_downloads_for_manga else AYMR.strings.delete_downloads_for_anime,
-                ),
+                text = stringResource(AYMR.strings.delete_downloads_for_anime),
             )
         },
         text = {
@@ -186,13 +181,12 @@ private fun StorageItemPreview() {
     StorageItem(
         item = StorageItem(
             id = 0L,
-            title = "Manga Title",
+            title = "Anime Title",
             size = 123456789L,
             thumbnail = null,
             entriesCount = 123,
             color = Color.Red,
         ),
-        isManga = true,
         onDelete = {
         },
     )

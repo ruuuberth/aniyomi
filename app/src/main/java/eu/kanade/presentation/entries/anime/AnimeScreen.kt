@@ -407,7 +407,6 @@ private fun AnimeScreenSmallImpl(
                     onInvertSelection = { onInvertSelection() },
                     titleAlphaProvider = { titleAlpha },
                     backgroundAlphaProvider = { backgroundAlpha },
-                    isManga = false,
                     modifier = Modifier.onSizeChanged { toolbarHeight = it.height },
                 )
             },
@@ -555,7 +554,6 @@ private fun AnimeScreenSmallImpl(
                             },
                             missingItemsCount = maxOf(missingEpisodesCount, missingSeasonsCount),
                             onClick = onFilterClicked,
-                            isManga = false,
                             fetchType = state.anime.fetchType,
                             modifier = Modifier.ignorePadding(offsetGridPaddingPx),
                         )
@@ -728,7 +726,7 @@ fun AnimeScreenLargeImpl(
         val containerHeightPx = with(density) { this@BoxWithConstraints.maxHeight.roundToPx() }
         Scaffold(
             topBar = {
-                val selectedChapterCount = remember(episodes) {
+                val selectedEpisodeCount = remember(episodes) {
                     episodes.count { it.selected }
                 }
                 EntryToolbar(
@@ -745,12 +743,11 @@ fun AnimeScreenLargeImpl(
                     onCancelActionMode = { onAllEpisodeSelected(false) },
                     onClickSettings = onSettingsClicked,
                     changeAnimeSkipIntro = changeAnimeSkipIntro,
-                    actionModeCounter = selectedChapterCount,
+                    actionModeCounter = selectedEpisodeCount,
                     onSelectAll = { onAllEpisodeSelected(true) },
                     onInvertSelection = { onInvertSelection() },
                     titleAlphaProvider = { 1f },
                     backgroundAlphaProvider = { 1f },
-                    isManga = false,
                 )
             },
             bottomBar = {
@@ -889,7 +886,6 @@ fun AnimeScreenLargeImpl(
                                     },
                                     missingItemsCount = maxOf(missingEpisodesCount, missingSeasonsCount),
                                     onClick = onFilterButtonClicked,
-                                    isManga = false,
                                     fetchType = state.anime.fetchType,
                                     modifier = Modifier.ignorePadding(offsetGridPaddingPx),
                                 )
@@ -1015,7 +1011,6 @@ private fun SharedAnimeBottomActionMenu(
         onInternalClicked = {
             onEpisodeClicked(selected.fastMap { it.episode }.first(), true)
         }.takeIf { alwaysUseExternalPlayer && selected.size == 1 },
-        isManga = false,
     )
 }
 
