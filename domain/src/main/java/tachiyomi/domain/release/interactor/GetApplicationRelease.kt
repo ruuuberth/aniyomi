@@ -53,20 +53,19 @@ class GetApplicationRelease(
     ): Boolean {
         // Removes prefixes like "r" or "v"
         val newVersion = versionTag.replace("[^\\d.]".toRegex(), "")
-        return if (isPreview) {
-            // Preview builds: based on releases in "tachiyomiorg/tachiyomi-preview" repo
-            // tagged as something like "r1234"
-            newVersion.toInt() > commitCount
+        val previewVersion = newVersion.toIntOrNull()
+        return if (isPreview && previewVersion != null) {
+            // Preview builds: based on releases tagged as something like "r1234"
+            previewVersion > commitCount
         } else {
-            // Release builds: based on releases in "tachiyomiorg/tachiyomi" repo
-            // tagged as something like "v0.1.2"
-            val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
+            // Release builds: based on releases tagged as something like "v0.1.2"
+            val oldVersion = versionName.substringBefore('-').replace("[^\\d.]".toRegex(), "")
 
-            val newSemVer = newVersion.split(".").map { it.toInt() }
-            val oldSemVer = oldVersion.split(".").map { it.toInt() }
+            val newSemVer = newVersion.split(".").map { it.toIntOrNull() ?: 0 }
+            val oldSemVer = oldVersion.split(".").map { it.toIntOrNull() ?: 0 }
 
             oldSemVer.mapIndexed { index, i ->
-                if (newSemVer[index] > i) {
+                if (newSemVer.getOrElse(index) { 0 } > i) {
                     return true
                 }
             }
