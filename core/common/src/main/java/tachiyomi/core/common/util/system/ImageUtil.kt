@@ -229,4 +229,3 @@ object ImageUtil {
         else -> false
     }
 }
-

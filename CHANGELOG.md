@@ -10,6 +10,20 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v0.19.0] - 2026-11-13
+
+### Removed
+
+- Removed all manga functionality: manga library, browse, entries, categories, history, updates and
+  downloads screens, the manga database and its migrations, manga readers and sources, manga
+  extension loaders/installers, manga widgets, manga trackers, manga backup models and the manga
+  library exporter. This build is anime-only.
+
+### Fixed
+
+- Fixed dependency resolution by pinning `flexible-adapter` to a JitPack commit that can still be
+  built (`3268efe4`, identical sources to the previous `c8013533`).
+
 ## [v0.18.2.1] - 2026-09-14
 
 ### Added

@@ -200,8 +200,8 @@ fun AnimeImagesDialog(
                         factory = {
                             PhotoView(it).apply {
                                 setOnClickListener { onDismissRequest() }
-                                clipToPadding = false
-                                clipChildren = false
+                                setClipToPadding(false)
+                                setClipChildren(false)
                             }
                         },
                         update = { view ->
