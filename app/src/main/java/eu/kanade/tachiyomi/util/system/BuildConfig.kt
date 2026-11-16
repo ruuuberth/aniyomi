@@ -14,4 +14,4 @@ val isPreviewBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE == "preview"
 
 val isReleaseBuildType: Boolean
-    inline get() = BuildConfig.BUILD_TYPE == "release"
+    inline get() = BuildConfig.BUILD_TYPE == "release" || BuildConfig.BUILD_TYPE == "es"

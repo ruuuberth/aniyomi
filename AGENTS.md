@@ -38,7 +38,8 @@ CI order (`.github/workflows/build_push.yml`, "CI"): `spotlessCheck` → `assemb
 - R8 minification is ON by default for release (`Config.enableCodeShrink` = `!disable-code-shrink`); `assembleRelease`
   is slow without `-Pdisable-code-shrink`. Build-config flags map to `-P` properties: `enable-updater`,
   `disable-code-shrink`, `include-dependency-info` (`buildSrc/src/main/kotlin/mihon/buildlogic/BuildConfig.kt`).
-- Build types: `debug`, `release`, `preview` (release-like, debug-signed, `.debug` appId suffix), `benchmark`.
+- Build types: `debug`, `release`, `preview` (release-like, debug-signed, `.debug` appId suffix), `es` (the
+  published build: own app id `com.ruuuberth.aniyomi.es`, signed with the project's key), `benchmark`.
 - Unit tests are few: `app/src/test` (migration), `domain/src/test`, `core/common/src/test` (JUnit Platform +
   kotest/mockk, `useJUnitPlatform()`).
 - **This workspace (Termux) has no Android SDK**, so `./gradlew` cannot run here: push to `anime-only` and let
@@ -104,15 +105,16 @@ wiring). Extension API lives in `source-api`; `presentation-core`/`presentation-
   `v<version>`; `.github/workflows/anime_only_release.yml` ("Anime-only release") builds the APKs, writes
   `checksums.txt`, and publishes the GitHub release with the changelog section of the tag.
 - The `release` build type produces **unsigned** APKs (the signing key lives in upstream secrets), so the
-  published artifacts are `preview` builds: `applicationId` `xyz.jmir.tachiyomi.mi.debug` → they
-  install side by side with the normal app. APK names: `app/build/outputs/apk/preview/app-<abi>-preview.apk`.
-- The `preview` builds are signed with a **fixed** keystore (secrets `PREVIEW_KEYSTORE_BASE64` +
+  published artifacts come from the `es` build type instead: `applicationId` `com.ruuuberth.aniyomi.es`, app name
+  **Aniyomi [ES]** → it installs side by side with the regular Aniyomi app. APK names:
+  `app/build/outputs/apk/es/app-<abi>-es.apk`, published as `aniyomi-es-<tag>-<abi>.apk`.
+- The `es` and `preview` builds are signed with a **fixed** keystore (secrets `PREVIEW_KEYSTORE_BASE64` +
   `PREVIEW_KEYSTORE_PASSWORD` / `PREVIEW_KEY_ALIAS` / `PREVIEW_KEY_PASSWORD`, exported to gradle as
   `ANIKKU_KEYSTORE_PATH` / `ANIKKU_KEYSTORE_PASSWORD` / `ANIKKU_KEY_ALIAS` / `ANIKKU_KEY_PASSWORD`).
   It is **not** in the repo: the local copy lives in `~/.config/aniyomi/preview.keystore` (password in
-  `~/.config/aniyomi/credentials.txt`). Losing it means the installed previews can no longer be
-  updated by the following ones. Before v0.19.2 every build used the throwaway debug keystore of the
-  CI runner, so each release had a different signature and refused to update the previous one.
+  `~/.config/aniyomi/credentials.txt`). Losing it means the installed builds can no longer be updated by the
+  following ones. Before v0.19.2 every build used the throwaway debug keystore of the CI runner, so each
+  release had a different signature and refused to update the previous one.
 - Re-running the release requires re-pushing the tag (`workflow_dispatch` skips the release steps: they are
   gated on `startsWith(github.ref, 'refs/tags/')`).
 - The in-app updater points at `ruuuberth/aniyomi` (`AppUpdateChecker.kt`), not upstream — keep it that way, and

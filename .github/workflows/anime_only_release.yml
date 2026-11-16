@@ -45,18 +45,18 @@ jobs:
           echo "ANIKKU_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
           echo "ANIKKU_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
 
-      - name: Build preview APKs
-        run: ./gradlew assemblePreview -Penable-updater
+      - name: Build the APKs
+        run: ./gradlew assembleEs -Penable-updater
 
       - name: Check the signing certificate
         run: |
           set -e
           APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | tail -1)
           echo "== certificate of this build =="
-          "$APKSIGNER" verify --print-certs app/build/outputs/apk/preview/app-arm64-v8a-preview.apk \
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/es/app-arm64-v8a-es.apk \
             | grep -i "SHA-256 digest"
           echo "== certificate of the previous release =="
-          previous_tag="v0.19.1"
+          previous_tag="v0.19.2"
           curl -sL -o previous.apk \
             "https://github.com/ruuuberth/aniyomi/releases/download/$previous_tag/aniyomi-anime-only-$previous_tag-arm64-v8a.apk"
           "$APKSIGNER" verify --print-certs previous.apk | grep -i "SHA-256 digest"
@@ -66,13 +66,13 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           set -e
-          cd app/build/outputs/apk/preview
+          cd app/build/outputs/apk/es
           tag="${GITHUB_REF#refs/tags/}"
-          mv app-universal-preview.apk "aniyomi-anime-only-$tag-universal.apk"
-          mv app-arm64-v8a-preview.apk "aniyomi-anime-only-$tag-arm64-v8a.apk"
-          mv app-armeabi-v7a-preview.apk "aniyomi-anime-only-$tag-armeabi-v7a.apk"
-          mv app-x86-preview.apk "aniyomi-anime-only-$tag-x86.apk"
-          mv app-x86_64-preview.apk "aniyomi-anime-only-$tag-x86_64.apk"
+          mv app-universal-es.apk "aniyomi-es-$tag-universal.apk"
+          mv app-arm64-v8a-es.apk "aniyomi-es-$tag-arm64-v8a.apk"
+          mv app-armeabi-v7a-es.apk "aniyomi-es-$tag-armeabi-v7a.apk"
+          mv app-x86-es.apk "aniyomi-es-$tag-x86.apk"
+          mv app-x86_64-es.apk "aniyomi-es-$tag-x86_64.apk"
           sha256sum *.apk > checksums.txt
           cat checksums.txt
 
@@ -82,10 +82,11 @@ jobs:
           set -e
           tag="${GITHUB_REF#refs/tags/}"
           {
-            echo "Anime-only build of Aniyomi: all manga functionality has been removed."
+            echo "Aniyomi [ES] is the Spanish anime-only build of Aniyomi: all manga"
+            echo "functionality has been removed."
             echo
-            echo "These APKs are signed with the project's preview key, so the app id is"
-            echo "\`xyz.jmir.tachiyomi.mi.debug\` and it installs side by side with the"
+            echo "These APKs are signed with the project's key, so the app id is"
+            echo "\`com.ruuuberth.aniyomi.es\` and it installs side by side with the"
             echo "regular Aniyomi app."
             echo
             echo "### Changelog"
@@ -106,18 +107,18 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-apks-${{ github.sha }}
-          path: app/build/outputs/apk/preview/*.apk
+          path: app/build/outputs/apk/es/*.apk
 
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           tag_name: ${{ github.ref_name }}
-          name: Aniyomi Anime-Only ${{ github.ref_name }}
+          name: Aniyomi [ES] ${{ github.ref_name }}
           body_path: release-notes.md
           files: |
-            app/build/outputs/apk/preview/*.apk
-            app/build/outputs/apk/preview/checksums.txt
+            app/build/outputs/apk/es/*.apk
+            app/build/outputs/apk/es/checksums.txt
           draft: false
           prerelease: false
         env:

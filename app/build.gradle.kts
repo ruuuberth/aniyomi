@@ -17,10 +17,10 @@ android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "xyz.jmir.tachiyomi.mi"
+        applicationId = "com.ruuuberth.aniyomi.es"
 
-        versionCode = 135
-        versionName = "0.19.2"
+        versionCode = 136
+        versionName = "0.19.3"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -44,6 +44,21 @@ android {
 
     signingConfigs {
         // The preview builds are signed with a fixed key so that they can update each
+        // other. Without it, every build uses the throwaway debug keystore of the build
+        // machine and Android refuses to install a new version over the old one.
+        val previewKeystorePath = providers.environmentVariable("ANIKKU_KEYSTORE_PATH").orNull
+        if (previewKeystorePath != null) {
+            create("previewKey") {
+                storeFile = file(previewKeystorePath)
+                storePassword = providers.environmentVariable("ANIKKU_KEYSTORE_PASSWORD").orNull
+                keyAlias = providers.environmentVariable("ANIKKU_KEY_ALIAS").orNull
+                keyPassword = providers.environmentVariable("ANIKKU_KEY_PASSWORD").orNull
+            }
+        }
+    }
+
+    signingConfigs {
+        // The published builds are signed with a fixed key so that they can update each
         // other. Without it, every build uses the throwaway debug keystore of the build
         // machine and Android refuses to install a new version over the old one.
         val previewKeystorePath = providers.environmentVariable("ANIKKU_KEYSTORE_PATH").orNull
@@ -97,6 +112,18 @@ android {
             signingConfig = debug.signingConfig
 
             matchingFallbacks.addAll(commonMatchingFallbacks)
+        }
+
+        // The build that is published: the app of this fork, with its own application id
+        // and signed with the project's key, so it can be updated over a previous one.
+        create("es") {
+            initWith(release)
+
+            signingConfig = signingConfigs.findByName("previewKey") ?: debug.signingConfig
+
+            matchingFallbacks.addAll(commonMatchingFallbacks)
+
+            buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = false)}\"")
         }
     }
 
