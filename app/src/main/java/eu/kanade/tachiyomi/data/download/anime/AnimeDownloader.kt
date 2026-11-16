@@ -69,6 +69,7 @@ import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -591,15 +592,13 @@ class AnimeDownloader(
         // The ffmpeg HLS demuxer fetches every segment on its own, one after the other, so
         // a chapter split in hundreds of segments takes dozens of minutes. Downloading the
         // segments in parallel and giving ffmpeg a local playlist removes that bottleneck.
-        val hlsDir = tmpDir.createDirectory(HLS_DIRECTORY_NAME)
-        val localPlaylist = hlsDir?.let {
-            hlsDownloader.download(video.videoUrl, headers, it) { downloaded, total ->
-                if (total > 0) {
-                    download.progress = HLS_PROGRESS_PERCENT * downloaded / total
-                }
+        val hlsDir = File(tmpDir.filePath, HLS_DIRECTORY_NAME).apply { mkdirs() }
+        val localPlaylist = hlsDownloader.download(video.videoUrl, headers, hlsDir) { downloaded, total ->
+            if (total > 0) {
+                download.progress = HLS_PROGRESS_PERCENT * downloaded / total
             }
         }
-        val inputUrl = localPlaylist?.let { "file://${it.filePath}" } ?: video.videoUrl
+        val inputUrl = localPlaylist?.let { "file://${it.absolutePath}" } ?: video.videoUrl
 
         try {
             FFmpegKitConfig.setLogRedirectionStrategy(LogRedirectionStrategy.ALWAYS_PRINT_LOGS)
@@ -653,8 +652,7 @@ class AnimeDownloader(
             }
         } finally {
             // The downloaded segments are only needed while ffmpeg muxes the file.
-            hlsDir?.listFiles()?.forEach { it.delete() }
-            hlsDir?.delete()
+            hlsDir.deleteRecursively()
         }
     }
 

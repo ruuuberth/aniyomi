@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.data.download.anime
 
-import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
 import kotlinx.coroutines.async
@@ -14,6 +13,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -53,9 +53,9 @@ internal class HlsDownloader(
     suspend fun download(
         playlistUrl: String,
         headers: Headers,
-        targetDir: UniFile,
+        targetDir: File,
         onProgress: (downloaded: Int, total: Int) -> Unit = { _, _ -> },
-    ): UniFile? {
+    ): File? {
         val url = playlistUrl.toHttpUrlOrNull() ?: return null
         val playlist = fetchText(url, headers) ?: return null
 
@@ -113,16 +113,15 @@ internal class HlsDownloader(
     private suspend fun downloadFile(
         url: HttpUrl,
         headers: Headers,
-        targetDir: UniFile,
+        targetDir: File,
         name: String,
-    ): UniFile? {
+    ): File? {
         val request = Request.Builder().url(url).headers(headers).get().build()
         return client.newCall(request).await().use { response ->
             if (!response.isSuccessful) return@use null
-            val file = targetDir.createFile(name) ?: return@use null
-            val body = response.body
-            file.openOutputStream().use { output ->
-                body.byteStream().use { input -> input.copyTo(output) }
+            val file = File(targetDir, name)
+            file.outputStream().use { output ->
+                response.body.byteStream().use { input -> input.copyTo(output) }
             }
             file
         }
@@ -133,11 +132,10 @@ internal class HlsDownloader(
      */
     private fun writeLocalPlaylist(
         playlist: String,
-        init: UniFile?,
-        segments: List<UniFile>,
-        targetDir: UniFile,
-    ): UniFile? {
-        val localPlaylist = targetDir.createFile(LOCAL_PLAYLIST_NAME) ?: return null
+        init: File?,
+        segments: List<File>,
+        targetDir: File,
+    ): File? {
         var segmentIndex = 0
 
         val content = buildString {
@@ -145,7 +143,7 @@ internal class HlsDownloader(
                 val trimmed = line.trim()
                 when {
                     trimmed.startsWith("#EXT-X-MAP:") -> {
-                        val path = init?.filePath
+                        val path = init?.absolutePath
                         if (path != null) {
                             appendLine("#EXT-X-MAP:URI=\"file://$path\"")
                         } else {
@@ -157,19 +155,20 @@ internal class HlsDownloader(
                         val file = segments.getOrNull(segmentIndex)
                         segmentIndex++
                         if (file != null) {
-                            appendLine("file://${file.filePath}")
+                            appendLine("file://${file.absolutePath}")
                         }
                     }
                 }
             }
         }
 
-        localPlaylist.openOutputStream().use { it.write(content.toByteArray()) }
+        val localPlaylist = File(targetDir, LOCAL_PLAYLIST_NAME)
+        localPlaylist.writeText(content)
         return localPlaylist
     }
 
     companion object {
-        private const val DEFAULT_PARALLEL_REQUESTS = 8
+        private const val DEFAULT_PARALLEL_REQUESTS = 1
         private const val LOCAL_PLAYLIST_NAME = "playlist.m3u8"
         private const val MP4_EXTENSION = ".mp4"
         private const val MPEG_TS_EXTENSION = ".ts"
