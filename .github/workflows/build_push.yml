@@ -38,6 +38,9 @@ jobs:
       - name: Build app
         run: ./gradlew assembleRelease -Penable-updater
 
+      - name: Build the published variant
+        run: ./gradlew assembleEs -Pdisable-code-shrink -Penable-updater
+
       - name: Run unit tests
         run: ./gradlew testReleaseUnitTest
 
