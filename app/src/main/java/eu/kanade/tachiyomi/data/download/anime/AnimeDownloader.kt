@@ -112,7 +112,9 @@ class AnimeDownloader(
      * Downloads HLS playlists and their segments in parallel, so that ffmpeg doesn't have
      * to fetch every segment on its own.
      */
-    private val hlsDownloader by lazy { HlsDownloader { networkHelper.defaultUserAgentProvider() } }
+    private val hlsDownloader by lazy {
+        HlsDownloader(userAgentProvider = { networkHelper.defaultUserAgentProvider() })
+    }
 
     /**
      * Coroutine scope used for download job scheduling
@@ -632,7 +634,14 @@ class AnimeDownloader(
                 val outTime = (s.time / 1000.0).toLong()
 
                 if (duration != 0L && outTime > 0) {
-                    download.progress = (100 * outTime / duration).toInt()
+                    val progress = 100 * outTime / duration
+                    download.progress = if (localPlaylist != null) {
+                        // The segments were already downloaded, so the muxing is the
+                        // remaining part of the progress.
+                        HLS_PROGRESS_PERCENT + (progress * (100 - HLS_PROGRESS_PERCENT)) / 100
+                    } else {
+                        progress
+                    }
                 }
             }
 
