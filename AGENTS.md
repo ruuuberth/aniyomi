@@ -104,8 +104,15 @@ wiring). Extension API lives in `source-api`; `presentation-core`/`presentation-
   `v<version>`; `.github/workflows/anime_only_release.yml` ("Anime-only release") builds the APKs, writes
   `checksums.txt`, and publishes the GitHub release with the changelog section of the tag.
 - The `release` build type produces **unsigned** APKs (the signing key lives in upstream secrets), so the
-  published artifacts are `preview` builds: debug-signed, `applicationId` `xyz.jmir.tachiyomi.mi.debug` → they
+  published artifacts are `preview` builds: `applicationId` `xyz.jmir.tachiyomi.mi.debug` → they
   install side by side with the normal app. APK names: `app/build/outputs/apk/preview/app-<abi>-preview.apk`.
+- The `preview` builds are signed with a **fixed** keystore (secrets `PREVIEW_KEYSTORE_BASE64` +
+  `PREVIEW_KEYSTORE_PASSWORD` / `PREVIEW_KEY_ALIAS` / `PREVIEW_KEY_PASSWORD`, exported to gradle as
+  `ANIKKU_KEYSTORE_PATH` / `ANIKKU_KEYSTORE_PASSWORD` / `ANIKKU_KEY_ALIAS` / `ANIKKU_KEY_PASSWORD`).
+  It is **not** in the repo: the local copy lives in `~/.config/aniyomi/preview.keystore` (password in
+  `~/.config/aniyomi/credentials.txt`). Losing it means the installed previews can no longer be
+  updated by the following ones. Before v0.19.2 every build used the throwaway debug keystore of the
+  CI runner, so each release had a different signature and refused to update the previous one.
 - Re-running the release requires re-pushing the tag (`workflow_dispatch` skips the release steps: they are
   gated on `startsWith(github.ref, 'refs/tags/')`).
 - The in-app updater points at `ruuuberth/aniyomi` (`AppUpdateChecker.kt`), not upstream — keep it that way, and
