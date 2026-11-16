@@ -10,6 +10,13 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v0.19.2] - 2026-11-16
+
+### Fixed
+
+- The preview builds are signed with a fixed key now, so a new preview can be installed over
+  the previous one instead of failing with a signature mismatch.
+
 ## [v0.19.1] - 2026-11-16
 
 ### Improved
