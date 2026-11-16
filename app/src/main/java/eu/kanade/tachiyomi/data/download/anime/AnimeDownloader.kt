@@ -638,9 +638,9 @@ class AnimeDownloader(
                     download.progress = if (localPlaylist != null) {
                         // The segments were already downloaded, so the muxing is the
                         // remaining part of the progress.
-                        HLS_PROGRESS_PERCENT + (progress * (100 - HLS_PROGRESS_PERCENT)) / 100
+                        (HLS_PROGRESS_PERCENT + (progress * (100 - HLS_PROGRESS_PERCENT)) / 100).toInt()
                     } else {
-                        progress
+                        progress.toInt()
                     }
                 }
             }
