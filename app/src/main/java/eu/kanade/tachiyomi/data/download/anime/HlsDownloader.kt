@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.data.download.anime
 
 import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.network.interceptor.UserAgentInterceptor
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -102,11 +103,17 @@ internal class HlsDownloader(
 
     private suspend fun fetchText(url: HttpUrl, headers: Headers): String? {
         val request = Request.Builder().url(url).headers(headers).get().build()
-        return client.newCall(request).await().use { response ->
-            if (!response.isSuccessful) return@use null
-            val contentType = response.header("Content-Type").orEmpty()
-            if (!contentType.contains("mpegurl", ignoreCase = true)) return@use null
-            response.body.string()
+        return try {
+            client.newCall(request).await().use { response ->
+                if (!response.isSuccessful) return@use null
+                val contentType = response.header("Content-Type").orEmpty()
+                if (!contentType.contains("mpegurl", ignoreCase = true)) return@use null
+                response.body.string()
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -117,13 +124,19 @@ internal class HlsDownloader(
         name: String,
     ): File? {
         val request = Request.Builder().url(url).headers(headers).get().build()
-        return client.newCall(request).await().use { response ->
-            if (!response.isSuccessful) return@use null
-            val file = File(targetDir, name)
-            file.outputStream().use { output ->
-                response.body.byteStream().use { input -> input.copyTo(output) }
+        return try {
+            client.newCall(request).await().use { response ->
+                if (!response.isSuccessful) return@use null
+                val file = File(targetDir, name)
+                file.outputStream().use { output ->
+                    response.body.byteStream().use { input -> input.copyTo(output) }
+                }
+                file
             }
-            file
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
         }
     }
 

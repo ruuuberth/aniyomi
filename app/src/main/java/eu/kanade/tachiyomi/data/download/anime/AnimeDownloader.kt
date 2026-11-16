@@ -593,10 +593,18 @@ class AnimeDownloader(
         // a chapter split in hundreds of segments takes dozens of minutes. Downloading the
         // segments in parallel and giving ffmpeg a local playlist removes that bottleneck.
         val hlsDir = File(tmpDir.filePath!!, HLS_DIRECTORY_NAME).apply { mkdirs() }
-        val localPlaylist = hlsDownloader.download(video.videoUrl, headers, hlsDir) { downloaded, total ->
-            if (total > 0) {
-                download.progress = HLS_PROGRESS_PERCENT * downloaded / total
+        val localPlaylist = try {
+            hlsDownloader.download(video.videoUrl, headers, hlsDir) { downloaded, total ->
+                if (total > 0) {
+                    download.progress = HLS_PROGRESS_PERCENT * downloaded / total
+                }
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Falling back to the original url keeps the download working, only slower.
+            logcat(LogPriority.ERROR) { "Failed to download the HLS playlist: ${e.message}" }
+            null
         }
         val inputUrl = localPlaylist?.let { "file://${it.absolutePath}" } ?: video.videoUrl
 
