@@ -181,7 +181,7 @@ internal class HlsDownloader(
     }
 
     companion object {
-        private const val DEFAULT_PARALLEL_REQUESTS = 1
+        private const val DEFAULT_PARALLEL_REQUESTS = 8
         private const val LOCAL_PLAYLIST_NAME = "playlist.m3u8"
         private const val MP4_EXTENSION = ".mp4"
         private const val MPEG_TS_EXTENSION = ".ts"
