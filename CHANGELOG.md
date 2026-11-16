@@ -10,6 +10,13 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v0.19.1] - 2026-11-16
+
+### Improved
+
+- HLS downloads now fetch the segments in parallel instead of one after the other, which makes
+  downloading a chapter that is split in hundreds of segments much faster.
+
 ## [v0.19.0] - 2026-11-13
 
 ### Removed
