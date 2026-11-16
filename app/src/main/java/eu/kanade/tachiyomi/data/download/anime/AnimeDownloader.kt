@@ -25,6 +25,7 @@ import eu.kanade.tachiyomi.data.download.anime.model.AnimeDownload
 import eu.kanade.tachiyomi.data.library.anime.AnimeLibraryUpdateNotifier
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
+import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
@@ -68,6 +69,7 @@ import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -88,6 +90,7 @@ class AnimeDownloader(
     private val torrentServerApi: TorrentServerApi = Injekt.get(),
     private val torrentServerUtils: TorrentServerUtils = Injekt.get(),
     private val torrentPreferences: TorrentPreferences = Injekt.get(),
+    private val networkHelper: NetworkHelper = Injekt.get(),
 ) {
     /**
      * Store for persisting downloads across restarts.
@@ -104,6 +107,14 @@ class AnimeDownloader(
      * Notifier for the downloader state and progress.
      */
     private val notifier by lazy { AnimeDownloadNotifier(context) }
+
+    /**
+     * Downloads HLS playlists and their segments in parallel, so that ffmpeg doesn't have
+     * to fetch every segment on its own.
+     */
+    private val hlsDownloader by lazy {
+        HlsDownloader(userAgentProvider = { networkHelper.defaultUserAgentProvider() })
+    }
 
     /**
      * Coroutine scope used for download job scheduling
@@ -580,58 +591,94 @@ class AnimeDownloader(
             "${it.first}: ${it.second}\r\n"
         }
 
-        FFmpegKitConfig.setLogRedirectionStrategy(LogRedirectionStrategy.ALWAYS_PRINT_LOGS)
-        val ffmpegOptions = getFFmpegOptions(video, headerOptions, ffmpegFilename())
-        val ffprobeCommand = { file: String, ffprobeHeaders: String? ->
-            FFmpegKitConfig.parseArguments(
-                "${ffprobeHeaders?.plus(" ") ?: ""}-v quiet -show_entries " +
-                    "format=duration -of default=noprint_wrappers=1:nokey=1 \"$file\"",
-            )
-        }
-
-        var duration = 0L
-
-        val logCallback = LogCallback { log ->
-            if (log.level <= Level.AV_LOG_WARNING) {
-                log.message?.let {
-                    logcat(LogPriority.ERROR) { it }
+        // The ffmpeg HLS demuxer fetches every segment on its own, one after the other, so
+        // a chapter split in hundreds of segments takes dozens of minutes. Downloading the
+        // segments in parallel and giving ffmpeg a local playlist removes that bottleneck.
+        val hlsDir = File(tmpDir.filePath!!, HLS_DIRECTORY_NAME).apply { mkdirs() }
+        val localPlaylist = try {
+            hlsDownloader.download(video.videoUrl, headers, hlsDir) { downloaded, total ->
+                if (total > 0) {
+                    download.progress = HLS_PROGRESS_PERCENT * downloaded / total
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Falling back to the original url keeps the download working, only slower.
+            logcat(LogPriority.ERROR) { "Failed to download the HLS playlist: ${e.message}" }
+            null
         }
+        val inputUrl = localPlaylist?.let { "file://${it.absolutePath}" } ?: video.videoUrl
 
-        val statCallback = StatisticsCallback { s ->
-            val outTime = (s.time / 1000.0).toLong()
-
-            if (duration != 0L && outTime > 0) {
-                download.progress = (100 * outTime / duration).toInt()
+        try {
+            FFmpegKitConfig.setLogRedirectionStrategy(LogRedirectionStrategy.ALWAYS_PRINT_LOGS)
+            val ffmpegOptions = getFFmpegOptions(video, inputUrl, headerOptions, ffmpegFilename())
+            val ffprobeCommand = { file: String, ffprobeHeaders: String? ->
+                FFmpegKitConfig.parseArguments(
+                    "${ffprobeHeaders?.plus(" ") ?: ""}-v quiet -show_entries " +
+                        "format=duration -of default=noprint_wrappers=1:nokey=1 \"$file\"",
+                )
             }
-        }
 
-        duration = getDuration(ffprobeCommand(video.videoUrl, headerOptions))?.toLong() ?: 0L
+            var duration = 0L
 
-        suspendCancellableCoroutine { continuation ->
-            val session = FFmpegKit.executeWithArgumentsAsync(
-                ffmpegOptions,
-                {
-                    if (it.returnCode.isValueSuccess) {
-                        tmpDir.findFile("$filename.tmp")?.apply {
-                            renameTo("$filename.mkv")
-                        }
-                        continuation.resume(it)
-                    } else {
-                        continuation.resumeWithException(Exception("Error in ffmpeg!"))
+            val logCallback = LogCallback { log ->
+                if (log.level <= Level.AV_LOG_WARNING) {
+                    log.message?.let {
+                        logcat(LogPriority.ERROR) { it }
                     }
-                },
-                logCallback,
-                statCallback,
-            )
-            continuation.invokeOnCancellation {
-                session.cancel()
+                }
             }
+
+            val statCallback = StatisticsCallback { s ->
+                val outTime = (s.time / 1000.0).toLong()
+
+                if (duration != 0L && outTime > 0) {
+                    val progress = 100 * outTime / duration
+                    download.progress = if (localPlaylist != null) {
+                        // The segments were already downloaded, so the muxing is the
+                        // remaining part of the progress.
+                        (HLS_PROGRESS_PERCENT + (progress * (100 - HLS_PROGRESS_PERCENT)) / 100).toInt()
+                    } else {
+                        progress.toInt()
+                    }
+                }
+            }
+
+            duration = getDuration(ffprobeCommand(inputUrl, headerOptions))?.toLong() ?: 0L
+
+            suspendCancellableCoroutine { continuation ->
+                val session = FFmpegKit.executeWithArgumentsAsync(
+                    ffmpegOptions,
+                    {
+                        if (it.returnCode.isValueSuccess) {
+                            tmpDir.findFile("$filename.tmp")?.apply {
+                                renameTo("$filename.mkv")
+                            }
+                            continuation.resume(it)
+                        } else {
+                            continuation.resumeWithException(Exception("Error in ffmpeg!"))
+                        }
+                    },
+                    logCallback,
+                    statCallback,
+                )
+                continuation.invokeOnCancellation {
+                    session.cancel()
+                }
+            }
+        } finally {
+            // The downloaded segments are only needed while ffmpeg muxes the file.
+            hlsDir.deleteRecursively()
         }
     }
 
-    private fun getFFmpegOptions(video: Video, headerOptions: String, ffmpegFilename: String): Array<String> {
+    private fun getFFmpegOptions(
+        video: Video,
+        inputUrl: String,
+        headerOptions: String,
+        ffmpegFilename: String,
+    ): Array<String> {
         fun formatInputs(tracks: List<Track>) = tracks.joinToString(" ", postfix = " ") {
             buildList {
                 if (it.url.startsWith("http")) {
@@ -666,12 +713,12 @@ class AnimeDownloader(
         }
 
         val videoInput = buildList {
-            if (video.videoUrl.startsWith("http")) {
+            if (inputUrl.startsWith("http")) {
                 add(headerOptions)
             }
             add(sourceStreamOptions)
             add("-i")
-            add("\"${video.videoUrl}\"")
+            add("\"$inputUrl\"")
         }.joinToString(" ")
 
         val command = listOf(
@@ -940,8 +987,12 @@ class AnimeDownloader(
         const val WARNING_NOTIF_TIMEOUT_MS = 30_000L
         const val EPISODES_PER_SOURCE_QUEUE_WARNING_THRESHOLD = 10
         private const val DOWNLOADS_QUEUED_WARNING_THRESHOLD = 20
+        private const val HLS_DIRECTORY_NAME = "hls"
+        private const val HLS_PROGRESS_PERCENT = 30
     }
 }
 
-// Arbitrary minimum required space to start a download: 200 MB
-private const val MIN_DISK_SPACE = 200L * 1024 * 1024
+// Arbitrary minimum required space to start a download: 400 MB.
+// HLS chapters are downloaded as a whole before being muxed, so the file and its
+// segments are on the disk at the same time.
+private const val MIN_DISK_SPACE = 400L * 1024 * 1024
