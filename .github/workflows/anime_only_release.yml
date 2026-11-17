@@ -35,6 +35,15 @@ jobs:
       - name: Set up gradle
         uses: gradle/actions/setup-gradle@94baf225fe0a508e581a564467443d0e2379123b # v4.3.0
 
+      - name: Resolve the release tag
+        id: release_tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "value=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF##*/}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Prepare the signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.PREVIEW_KEYSTORE_BASE64 }}
@@ -119,8 +128,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release/')
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Aniyomi [ES] ${{ github.ref_name }}
+          tag_name: ${{ steps.release_tag.outputs.value }}
+          name: Aniyomi [ES] ${{ steps.release_tag.outputs.value }}
           body_path: release-notes.md
           files: |
             app/build/outputs/apk/es/*.apk
