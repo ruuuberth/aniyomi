@@ -43,21 +43,6 @@ android {
     }
 
     signingConfigs {
-        // The preview builds are signed with a fixed key so that they can update each
-        // other. Without it, every build uses the throwaway debug keystore of the build
-        // machine and Android refuses to install a new version over the old one.
-        val previewKeystorePath = providers.environmentVariable("ANIKKU_KEYSTORE_PATH").orNull
-        if (previewKeystorePath != null) {
-            create("previewKey") {
-                storeFile = file(previewKeystorePath)
-                storePassword = providers.environmentVariable("ANIKKU_KEYSTORE_PASSWORD").orNull
-                keyAlias = providers.environmentVariable("ANIKKU_KEY_ALIAS").orNull
-                keyPassword = providers.environmentVariable("ANIKKU_KEY_PASSWORD").orNull
-            }
-        }
-    }
-
-    signingConfigs {
         // The published builds are signed with a fixed key so that they can update each
         // other. Without it, every build uses the throwaway debug keystore of the build
         // machine and Android refuses to install a new version over the old one.
