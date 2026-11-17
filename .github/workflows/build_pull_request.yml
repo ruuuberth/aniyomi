@@ -48,6 +48,9 @@ jobs:
       - name: Build app
         run: ./gradlew assembleRelease
 
+      - name: Build the published variant
+        run: ./gradlew assembleEs -Pdisable-code-shrink
+
       - name: Run unit tests
         run: ./gradlew testReleaseUnitTest
 

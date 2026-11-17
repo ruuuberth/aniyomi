@@ -10,6 +10,14 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v0.19.3] - 2026-11-16
+
+### Added
+
+- New app id and app name: the fork is now published as **Aniyomi [ES]** (`com.ruuuberth.aniyomi.es`), signed
+  with the project's own key, so it installs side by side with the regular Aniyomi app and can be updated in
+  place instead of needing a reinstall on every release.
+
 ## [v0.19.2] - 2026-11-16
 
 ### Fixed
