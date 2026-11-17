@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - 'v*'
+    # Some repositories don't fire tag pushes or allow manual dispatch; a release
+    # branch is a reliable alternative that still produces the same tag.
+    branches:
+      - 'release/**'
   workflow_dispatch:
 
 concurrency:
@@ -63,11 +67,12 @@ jobs:
           rm -f previous.apk
 
       - name: Rename APKs
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release/')
         run: |
           set -e
           cd app/build/outputs/apk/es
           tag="${GITHUB_REF#refs/tags/}"
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then tag="${GITHUB_REF##*/}"; fi
           mv app-universal-es.apk "aniyomi-es-$tag-universal.apk"
           mv app-arm64-v8a-es.apk "aniyomi-es-$tag-arm64-v8a.apk"
           mv app-armeabi-v7a-es.apk "aniyomi-es-$tag-armeabi-v7a.apk"
@@ -77,10 +82,11 @@ jobs:
           cat checksums.txt
 
       - name: Write release notes
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release/')
         run: |
           set -e
           tag="${GITHUB_REF#refs/tags/}"
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then tag="${GITHUB_REF##*/}"; fi
           {
             echo "Aniyomi [ES] is the Spanish anime-only build of Aniyomi: all manga"
             echo "functionality has been removed."
@@ -110,7 +116,7 @@ jobs:
           path: app/build/outputs/apk/es/*.apk
 
       - name: Create release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release/')
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           tag_name: ${{ github.ref_name }}
